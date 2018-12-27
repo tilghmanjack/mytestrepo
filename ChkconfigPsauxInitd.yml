@@ -1,0 +1,54 @@
+---
+###############################################################################
+#                                                                             #
+#                             ChkconfigPsauxInitd.yml                         #
+#                                                                             #
+#  Date       Rev.  Inits  Description                                        #
+#  ---------  ----- -----  -------------------------------------------------- #
+#  12272018   0.1   JWT    Initial creation                                   #
+#  12272018   0.2   JWT    Changed from using 'command' module to using       #
+#                          'shell' module.                                    #
+#                          Fixed a BUNCH of errors.                           #
+#                                                                             #
+#                                                                             #
+###############################################################################
+#
+#  This playbook will execute a chkconfig, ps aux and finally a directory listing 
+#  on /etc/init.d on all specified hosts.
+#  We'll then import the resulting output into Excel and setup filters on each
+#  column which should allow us to see which services are common among which
+#  hosts and whether or not the are auto started or not in chkconfig.
+#
+##############################################################################
+#
+
+##########################
+# Run a command via shell
+##########################
+
+# Run on all localhost for testing
+- hosts: aidetest
+# Declare local variables
+  vars:
+    SHELL_COMMAND: OUTPUT_FILE=hostinfo.txt; echo "*hostname*" > $OUTPUT_FILE ; hostname > $OUTPUT_FILE; echo "*date*" >> $OUTPUT_FILE; date >> $OUTPUT_FILE; echo "*chkconfig*" >> $OUTPUT_FILE; chkconfig | sort >> $OUTPUT_FILE; echo "*ps aux*" >> $OUTPUT_FILE; ps aux | awk '{ print $11 }' | sort >> $OUTPUT_FILE; echo "*init.d*" >> $OUTPUT_FILE; ls /etc/init.d |sort >> $OUTPUT_FILE; echo "###################################################################################################"; cat $OUTPUT_FILE; echo "###################################################################################################"; echo "Done."
+#    ARGUMENT1: 1
+#    ARGUMENT2: two
+#    ARGUMENT3: 3
+#    ARGUMENT4: for :-P
+# Give this Playbook a name...
+  tasks: 
+      - name: Grap output for chkconfig, ps aus and dir list of init.d
+# No need to switch user
+#        become: false 
+# Don't need to gather system facts.
+#        gather_facts: false 
+# Now specify the tasks to be executed.
+        shell: "{{ BASE_COMMAND }}"
+        args: 
+          executable: /bin/bash
+        register: "COMMAND_RESULT"
+# Print the results to stdout(the screen).
+      - debug: msg="{{COMMAND_RESULT.stdout}}"
+#
+# The END.
+...
